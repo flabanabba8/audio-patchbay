@@ -1,0 +1,5 @@
+# Audio Patchbay
+
+Inspect PulseAudio-compatible microphone sources and the default source, then select an exact listed source and later restore the prior default. Selection refuses a stale snapshot; restore refuses to overwrite a different default set independently. This changes the audio session's default microphone, so select a device intentionally. The plugin writes the intended selection to its private state before changing the default, to make an interrupted operation recoverable.
+
+Existing applications may keep using an already-open stream; this prototype does not move streams, unmute devices, change volume, repair PipeWire links, or guarantee recording works. PulseAudio/PipeWire changes can race external tools between checking and setting a default; there is no atomic compare-and-set in this workflow. `pactl` and a working PulseAudio-compatible server are required. Three mocked tests and a real isolated PipeWire test passed: two null-sink monitor sources were used to verify default selection and restoration. The host default was unchanged. A physical microphone, existing application streams and recording have not been tested.

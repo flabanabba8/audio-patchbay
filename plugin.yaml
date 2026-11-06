@@ -1,0 +1,10 @@
+name: audio-patchbay
+version: "0.1.0"
+description: "Inspect and reversibly select the PulseAudio-compatible default microphone."
+author: "Audio Patchbay contributors"
+license: GPL-3.0-or-later
+requires_hermes: ">=0.22.0"
+provides_tools:
+  - audio_inspect_sources
+  - audio_select_source
+  - audio_restore_source
