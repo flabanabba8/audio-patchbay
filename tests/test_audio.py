@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -49,6 +50,17 @@ class AudioTests(unittest.TestCase):
         self.assertEqual(self.current, 'mic-b')
         self.plugin.restore_source(snap)
         self.assertEqual(self.current, 'mic-a')
+
+    def test_snapshot_and_updates_are_private_under_permissive_umask(self):
+        previous = os.umask(0)
+        try:
+            ident = self.plugin.inspect_sources()['snapshot_id']
+            path = self.plugin.state_path(ident)
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            self.plugin.select_source(ident, 'mic-b')
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+        finally:
+            os.umask(previous)
 
     def test_independent_change_is_not_overwritten(self):
         snap = self.plugin.inspect_sources()['snapshot_id']

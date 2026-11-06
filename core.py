@@ -42,7 +42,8 @@ class Patchbay:
     def save(self, path, state):
         temp = self.root / (uuid.uuid4().hex + '.tmp')
         try:
-            temp.write_text(json.dumps(state))
+            with os.fdopen(os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), 'w') as f:
+                json.dump(state, f)
             os.replace(temp, path)
         finally:
             temp.unlink(missing_ok=True)
