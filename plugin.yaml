@@ -6,5 +6,6 @@ license: GPL-3.0-or-later
 requires_hermes: ">=0.22.0"
 provides_tools:
   - audio_inspect_sources
+  - audio_list_snapshots
   - audio_select_source
   - audio_restore_source

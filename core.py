@@ -106,3 +106,21 @@ class Patchbay:
             state['selected'] = None
             self.save(path, state)
             return {'default_source': state['original'], 'already_restored': False}
+
+    def list_snapshots(self):
+        with self.lock():
+            paths = sorted(self.root.glob('*.json'))
+            if len(paths) > 1000: raise ValueError('More than 1,000 snapshot records')
+            rows, unreadable = [], 0
+            for path in paths:
+                if len(path.stem) != 32 or any(c not in '0123456789abcdef' for c in path.stem): continue
+                try:
+                    if path.is_symlink(): raise ValueError('Invalid snapshot')
+                    state = json.loads(path.read_text(encoding='utf-8'))
+                    if not isinstance(state, dict) or 'selected' not in state or not isinstance(state.get('original'), str) or not (state['selected'] is None or isinstance(state['selected'], str)):
+                        raise ValueError('Invalid snapshot state')
+                    rows.append({'snapshot_id': path.stem, 'selection_recorded': state['selected'] is not None})
+                except (OSError, ValueError, TypeError, AttributeError):
+                    unreadable += 1
+            return {'snapshots': rows, 'unreadable_records': unreadable,
+                    'notice': 'Local records only; the current audio default may have changed. No audio server was contacted.'}

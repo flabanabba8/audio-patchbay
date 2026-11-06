@@ -28,6 +28,21 @@ class AudioTests(unittest.TestCase):
         if args[0] == 'set-default-source': self.current = args[1]; return ''
         raise AssertionError('Unexpected command')
 
+    def test_recover_snapshot_without_audio_server_or_device_names(self):
+        snap = self.plugin.inspect_sources()['snapshot_id']
+        self.plugin.select_source(snap, 'mic-b')
+        self.mock.stop()
+        try:
+            with patch.object(core, 'pactl', side_effect=AssertionError('Audio server must not be contacted')):
+                result = self.plugin.list_snapshots()
+        finally:
+            self.mock.start()
+        self.assertEqual(result['snapshots'], [{'snapshot_id': snap, 'selection_recorded': True}])
+        (Path(self.tmp.name)/('a'*32+'.json')).write_text('{"original":"synthetic"}')
+        with patch.object(core, 'pactl', side_effect=AssertionError('Audio server must not be contacted')):
+            self.assertEqual(self.plugin.list_snapshots()['unreadable_records'], 1)
+        self.assertNotIn('mic-a', str(result)); self.assertNotIn('mic-b', str(result))
+
     def test_select_and_restore(self):
         snap = self.plugin.inspect_sources()['snapshot_id']
         self.plugin.select_source(snap, 'mic-b')
