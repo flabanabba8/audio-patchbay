@@ -76,5 +76,10 @@ class AudioTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'changed'):
             self.plugin.select_source(snap, 'mic-b')
 
+    def test_missing_posix_locking_reports_requirement_before_audio_access(self):
+        with patch.object(core, 'fcntl', None), patch.object(core, 'pactl', side_effect=AssertionError('must not contact audio')):
+            with self.assertRaisesRegex(ValueError, 'requires POSIX locking'):
+                self.plugin.inspect_sources()
+
 if __name__ == '__main__':
     unittest.main()

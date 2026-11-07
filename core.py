@@ -1,6 +1,9 @@
 """Guarded default-source changes through pactl; no existing stream rerouting."""
 import contextlib
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 import json
 import os
 from pathlib import Path
@@ -27,6 +30,7 @@ class Patchbay:
 
     @contextlib.contextmanager
     def lock(self):
+        if fcntl is None: raise ValueError('Audio Patchbay requires POSIX locking and a PulseAudio-compatible server')
         with (self.root / '.lock').open('a') as f:
             fcntl.flock(f, fcntl.LOCK_EX)
             yield
